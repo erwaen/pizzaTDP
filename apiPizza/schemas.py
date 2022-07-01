@@ -1,4 +1,5 @@
 from typing import List, Union
+from modelos import IngreCategory
 
 from pydantic import BaseModel
 
@@ -15,7 +16,7 @@ class PizzaBase(BaseModel):
 class IngredienteBase(BaseModel):
     id: int
     nombre: str
-    categoria: int
+    categoria: IngreCategory
 
     class Config:
         orm_mode = True
