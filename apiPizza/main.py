@@ -46,6 +46,9 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 # ENDPOINTS PIZZAS
 @app.post("/pizzas/", response_model=schemas.Pizza)
 def create_pizza(pizza: schemas.PizzaCreate, db: Session = Depends(get_db)):
+    """
+    Crear una pizza
+    """
     db_pizza = crud.get_pizza_by_nombre(db, nombre=pizza.nombre)
     if db_pizza: # Si la pizza ya existe
         raise HTTPException(status_code=400, detail="Ya existe la pizza con ese nombre")
@@ -53,9 +56,13 @@ def create_pizza(pizza: schemas.PizzaCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="El precio debe ser un valor positivo")
 
     return crud.create_pizza(db=db, pizza=pizza)
+    
 
 @app.get("/pizzas/", response_model=List[schemas.PizzaNoId])
 def read_pizzas(user_type: int, db: Session = Depends(get_db)):
+    """
+    Listar las pizzas
+    """
     pizzas = crud.get_pizzas(user_type, db)
     for pizza in pizzas:
         pizza.cantidad_ingredientes = pizza.get_cantidad_ingredientes()
@@ -63,11 +70,26 @@ def read_pizzas(user_type: int, db: Session = Depends(get_db)):
 
 @app.get("/pizzas/{pizza_id}", response_model=schemas.PizzaDetallado)
 def read_pizza_detallado(pizza_id: int, db: Session = Depends(get_db)):
+    """
+    Ver en detalle una sola pizza por un id
+    """
     db_pizza = crud.get_pizza(pizza_id=pizza_id , db=db )
     if db_pizza is None: # Si el usuario no se encontro
         raise HTTPException(status_code=404, detail="Pizza no existe.")
     
     return db_pizza
+
+@app.post("/pizza-ingrediente/")
+def agregar_ingrediente_pizza(p_id: int, ingr_id , db: Session = Depends(get_db)):
+    """
+    agrega un ingrediente a tal pizza, ambos dados sus id's
+    """
+
+    result = crud.agregar_ingrediente_a_la_pizza(p_id, ingr_id, db)
+    return result
+
+
+
 
 # ENDPOINTS INGREDIENTES
 
@@ -77,4 +99,6 @@ def create_ingrediente(ingrediente: schemas.IngredienteCreate, db: Session = Dep
     if db_ingrediente: # Si el ingrediente ya existe
         raise HTTPException(status_code=400, detail="Ya se creo un ingrediente con este nombre")
     return crud.create_ingrediente(db=db, ingrediente=ingrediente)
+
+
 

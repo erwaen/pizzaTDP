@@ -18,12 +18,14 @@ class Usuario(Base):
     is_superuser = Column(Boolean, default=False)
 
 
-association_table_pizza_ingrediente = Table(
-    "association",
-    Base.metadata,
-    Column("pizza_id", ForeignKey("pizzas.id"), primary_key=True),
-    Column("ingrediente_id", ForeignKey("ingredientes.id"), primary_key=True),
-)
+class AssociationPizzaIngrediente(Base):
+    __tablename__ = "pizza_ingredientes_r"
+    pizza_id = Column(ForeignKey("pizzas.id"), primary_key=True)
+    ingrediente_id = Column(ForeignKey("ingredientes.id"), primary_key=True)
+    ingrediente = relationship("Ingrediente", back_populates="pizzas_usando")
+    pizza = relationship("Pizza", back_populates="sus_ingredientes")
+
+
 
 
 class Pizza(Base):
@@ -35,7 +37,7 @@ class Pizza(Base):
     is_active = Column(Boolean, default=False)
 
     sus_ingredientes = relationship(
-        "Ingrediente", secondary=association_table_pizza_ingrediente, back_populates="pizzas_usando"
+        "AssociationPizzaIngrediente", back_populates="pizza"
     )
 
     def get_cantidad_ingredientes(self):
@@ -54,7 +56,7 @@ class Ingrediente(Base):
     categoria = Column(Enum(IngreCategory), index=True, default=IngreCategory.Basico)
 
     pizzas_usando = relationship(
-        "Pizza", secondary=association_table_pizza_ingrediente, back_populates="sus_ingredientes"
+        "AssociationPizzaIngrediente", back_populates="ingrediente"
     )
 
 

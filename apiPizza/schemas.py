@@ -14,9 +14,11 @@ class PizzaCreate(PizzaBase):
 
 
 class IngredienteBase(BaseModel):
-    
     nombre: str
     categoria: IngreCategory
+
+    class Config:
+        orm_mode = True
 
     
     
@@ -47,7 +49,7 @@ class PizzaNoId(PizzaBase):
         orm_mode = True
 
 class PizzaDetallado(PizzaBase):
-    sus_ingredientes: List[IngredienteBase]
+    ingredientes: list
     is_active: bool
     class Config:
         orm_mode = True
@@ -73,6 +75,14 @@ class User(UserBase):
     is_active: bool
     
     #items: List[Item] = []
+
+    class Config:
+        orm_mode = True
+
+
+class PizzaIngrediente(BaseModel):
+    pizza_id: int
+    ingrediente_id: int
 
     class Config:
         orm_mode = True
