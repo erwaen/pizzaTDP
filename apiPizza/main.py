@@ -55,6 +55,24 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         "refresh_token": create_refresh_token(user.username),
     }
 
+# igual al anterior pero para poder usar en postman solo con dos valores
+@app.post('/logear-jwt', summary="Crear access y refresh para el usuario", response_model=schemas.TokenJWT)
+def login(username:str, password:str, db: Session = Depends(get_db)):
+    user = crud.get_user_by_username(db, username=username)
+    if user is None:
+        raise HTTPException(status_code=400, detail="username o password incorrectos")
+    
+
+    hashed_pass = user.hashed_password
+    if not verify_password(password, hashed_pass):
+        raise HTTPException(status_code=400, detail="username o password incorrectos")
+    
+    return {
+        "access_token": create_access_token(user.username),
+        "refresh_token": create_refresh_token(user.username),
+    }
+    
+    
 @app.get('/me', summary='Obtiene los detalles de un usuario, se usa solo para testeo', response_model=schemas.User)
 async def get_me(user: modelos.Usuario = Depends(get_current_user)):
     return user
