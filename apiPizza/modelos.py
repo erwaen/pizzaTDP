@@ -40,8 +40,8 @@ class Pizza(Base):
 
 
 class IngreCategory(enum.Enum):
-   Basico = 'Basico'
-   Premium = 'Premium'
+   Basico = 'basico'
+   Premium = 'premium'
 
 class Ingrediente(Base):
     __tablename__ = "ingredientes"
