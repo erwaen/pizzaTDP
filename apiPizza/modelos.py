@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
+from email.policy import default
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table, Enum
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -32,7 +33,6 @@ class Pizza(Base):
     nombre = Column(String, index=True)
     precio = Column(Integer, index=True)
     is_active = Column(Boolean, default=True)
-    items = relationship("Item", back_populates="owner")
 
     sus_ingredientes = relationship(
         "Ingrediente", secondary=association_table_pizza_ingrediente, back_populates="pizzas_usando"
@@ -48,7 +48,7 @@ class Ingrediente(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, index=True)
-    categoria = Column(IngreCategory, index=True)
+    categoria = Column(Enum(IngreCategory), index=True, default=IngreCategory.Basico)
 
     pizzas_usando = relationship(
         "Pizza", secondary=association_table_pizza_ingrediente, back_populates="sus_ingredientes"

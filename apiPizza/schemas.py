@@ -1,5 +1,5 @@
 from typing import List, Union
-from modelos import IngreCategory
+from .modelos import IngreCategory
 
 from pydantic import BaseModel
 
@@ -36,6 +36,8 @@ class Pizza(PizzaBase):
 
 class UserBase(BaseModel):
     username: str
+    is_staff: bool
+    is_superuser: bool
 
 
 # La constrasenha ponemos a parte por motivos de seguridad
@@ -47,8 +49,7 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: int
     is_active: bool
-    is_staff: bool
-    is_superuser: bool
+    
     #items: List[Item] = []
 
     class Config:
