@@ -45,6 +45,8 @@ def get_pizza(pizza_id: int, db: Session):
     Retorna la informacion de la pizza dado un id de pizza
     """
     pizza = db.query(modelos.Pizza).filter(modelos.Pizza.id == pizza_id).first()
+    if pizza is None:
+        return None
     ingredientes = []
     for ing in pizza.sus_ingredientes:
         ingredientes.append(ing.ingrediente.nombre)
@@ -77,6 +79,18 @@ def agregar_ingrediente_a_la_pizza(p_id: int, ingr_id: int, db: Session):
     db.refresh(db_p_ingr)
     
     return db_p_ingr
+
+def get_pizza_ingrediente_relacion(p_id: int, ingr_id: int, db: Session):
+    return db.query(modelos.AssociationPizzaIngrediente).filter(
+            modelos.AssociationPizzaIngrediente.pizza_id == p_id, 
+            modelos.AssociationPizzaIngrediente.ingrediente_id == ingr_id
+            ).first()
+
+
+def quitar_ingrediente_a_la_pizza(p_ingre_relacion,  db):
+    db.delete(p_ingre_relacion)
+    db.commit()
+
 
 
 #

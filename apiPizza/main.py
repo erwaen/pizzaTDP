@@ -88,7 +88,17 @@ def agregar_ingrediente_pizza(p_id: int, ingr_id , db: Session = Depends(get_db)
     result = crud.agregar_ingrediente_a_la_pizza(p_id, ingr_id, db)
     return result
 
-
+@app.delete("/pizza-ingrediente/{p_id}/{ingr_id}")
+def quitar_ingrediente_pizza(p_id: int, ingr_id: int, db: Session = Depends(get_db)):
+    """
+    Quitar el ingrediente ingr_id a la pizza p_id
+    """
+    print("GOOO")
+    p_ingre_relacion = crud.get_pizza_ingrediente_relacion(p_id, ingr_id, db)
+    if p_ingre_relacion is None:
+        raise HTTPException(status_code=404, detail="Relacion pizza - ingrediente no existe.")
+    crud.quitar_ingrediente_a_la_pizza(p_ingre_relacion, db)
+    return {"detail": 'Se quito el ingrediente de la pizza correctamente'}
 
 
 # ENDPOINTS INGREDIENTES
