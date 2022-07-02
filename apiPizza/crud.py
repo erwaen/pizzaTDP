@@ -107,6 +107,9 @@ def quitar_ingrediente_a_la_pizza(p_ingre_relacion,  db):
 # CRUD para INGREDIENTE
 #
 
+def get_ingrediente(db: Session, id: int):
+    return db.query(modelos.Ingrediente).filter(modelos.Ingrediente.id == id).first()
+
 def get_ingrediente_by_nombre(db: Session, nombre: str):
     return db.query(modelos.Ingrediente).filter(modelos.Ingrediente.nombre == nombre).first()
 
@@ -116,3 +119,19 @@ def create_ingrediente(db: Session, ingrediente: schemas.IngredienteCreate):
     db.commit()
     db.refresh(db_ingrediente)
     return db_ingrediente
+
+def modificar_ingrediente(db_ingrediente, nombre: str, categoria, db: Session):
+    db_ingrediente.nombre = nombre
+    db_ingrediente.categoria = categoria
+    db.commit()
+    db.refresh(db_ingrediente)    
+    return db_ingrediente
+
+def verificar_si_ingrediente_en_uso(id:int, db: Session):
+    return db.query(modelos.AssociationPizzaIngrediente).filter(modelos.AssociationPizzaIngrediente.ingrediente_id == id).first()
+
+
+def eliminar_ingrediente(id:int,  db: Session):
+    db_ingrediente = db.query(modelos.Ingrediente).filter(modelos.Ingrediente.id == id).first()
+    db.delete(db_ingrediente)
+    db.commit()

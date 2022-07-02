@@ -52,8 +52,8 @@ def create_pizza(pizza: schemas.PizzaCreate, db: Session = Depends(get_db)):
     db_pizza = crud.get_pizza_by_nombre(db, nombre=pizza.nombre)
     if db_pizza: # Si la pizza ya existe
         raise HTTPException(status_code=400, detail="Ya existe la pizza con ese nombre")
-    if pizza.precio < 0:
-        raise HTTPException(status_code=400, detail="El precio debe ser un valor positivo")
+    if pizza.precio <= 0:
+        raise HTTPException(status_code=400, detail="El precio debe mayor a 0")
 
     return crud.create_pizza(db=db, pizza=pizza)
     
@@ -106,7 +106,7 @@ def quitar_ingrediente_pizza(p_id: int, ingr_id: int, db: Session = Depends(get_
     """
     Quitar el ingrediente ingr_id a la pizza p_id
     """
-    print("GOOO")
+ 
     p_ingre_relacion = crud.get_pizza_ingrediente_relacion(p_id, ingr_id, db)
     if p_ingre_relacion is None:
         raise HTTPException(status_code=404, detail="Relacion pizza - ingrediente no existe.")
@@ -126,3 +126,28 @@ def create_ingrediente(ingrediente: schemas.IngredienteCreate, db: Session = Dep
 
 
 
+@app.patch("/ingredientes/{ingrediente_id}", response_model = schemas.IngredienteCreate)
+def modificar_ingrediente(ingrediente_id: int, ingrediente: schemas.IngredienteCreate, db: Session = Depends(get_db)):
+    """
+    Modificar valores del ingrediente como su nombre y su categoria
+    """
+    db_ingrediente = crud.get_ingrediente(db, id=ingrediente_id)
+    if db_ingrediente is None: # Si el usuario no se encontro
+        raise HTTPException(status_code=404, detail="El ingrediente no existe.")
+    
+    db_ingrediente = crud.modificar_ingrediente(db_ingrediente, nombre=ingrediente.nombre, categoria=ingrediente.categoria, db=db)
+    return db_ingrediente
+
+@app.delete("/ingredientes/{ingrediente_id}/")
+def eliminar_ingrediente( ingrediente_id: int ,db: Session = Depends(get_db)):
+    """
+    Eliminar un ingrediente si es que no esta en uso en ninguna pizza
+    """
+
+    db_ingrediente_relacion = crud.verificar_si_ingrediente_en_uso(id =  ingrediente_id, db=db)
+    if db_ingrediente_relacion:
+        raise HTTPException(status_code=400, detail="No se pudo eliminar, hay pizzas asociadas a este ingrediente.")
+
+    crud.eliminar_ingrediente(id=ingrediente_id, db=db)
+    return {"detail": "Se elimino el ingrediente correctamente."}  
+    
