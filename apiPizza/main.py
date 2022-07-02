@@ -42,3 +42,29 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     if db_user is None: # Si el usuario no se encontro
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return db_user
+
+# ENDPOINTS PIZZAS
+@app.post("/pizzas/", response_model=schemas.Pizza)
+def create_pizza(pizza: schemas.PizzaCreate, db: Session = Depends(get_db)):
+    db_pizza = crud.get_pizza_by_nombre(db, nombre=pizza.nombre)
+    if db_pizza: # Si la pizza ya existe
+        raise HTTPException(status_code=400, detail="Ya existe la pizza con ese nombre")
+    if pizza.precio < 0:
+        raise HTTPException(status_code=400, detail="El precio debe ser un valor positivo")
+
+    return crud.create_pizza(db=db, pizza=pizza)
+
+@app.get("/pizzas/", response_model=List[schemas.Pizza])
+def read_pizzas(user_type: int, db: Session = Depends(get_db)):
+    pizzas = crud.get_pizzas(db)
+    return pizzas
+
+# ENDPOINTS INGREDIENTES
+
+@app.post("/ingredientes/", response_model=schemas.Ingrediente)
+def create_ingrediente(ingrediente: schemas.IngredienteCreate, db: Session = Depends(get_db)):
+    db_ingrediente = crud.get_ingrediente_by_nombre(db, nombre=ingrediente.nombre)
+    if db_ingrediente: # Si el ingrediente ya existe
+        raise HTTPException(status_code=400, detail="Ya se creo un ingrediente con este nombre")
+    return crud.create_ingrediente(db=db, ingrediente=ingrediente)
+
