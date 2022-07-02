@@ -9,8 +9,7 @@ class PizzaBase(BaseModel):
     precio: int
 
 class PizzaCreate(PizzaBase):
-    pass
-
+    is_active: bool
     
 
 
@@ -39,6 +38,17 @@ class Pizza(PizzaBase):
     id: int
     sus_ingredientes: List[IngredienteBase]
 
+    class Config:
+        orm_mode = True
+
+class PizzaNoId(PizzaBase):
+    cantidad_ingredientes: int
+    class Config:
+        orm_mode = True
+
+class PizzaDetallado(PizzaBase):
+    sus_ingredientes: List[IngredienteBase]
+    is_active: bool
     class Config:
         orm_mode = True
 

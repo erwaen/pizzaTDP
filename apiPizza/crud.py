@@ -1,3 +1,4 @@
+from unittest import result
 from sqlalchemy.orm import Session
 
 from . import modelos, schemas
@@ -30,12 +31,23 @@ def create_user(db: Session, user: schemas.UserCreate):
 #
 # CRUD para PIZZA
 #
-def get_pizzas(db: Session):
+def get_pizzas(user_type, db: Session):
     """
     Default todas las pizzas que estan activas
     Si el usuario esta logueado y es usuario staff o superuser retorna todas las pizzas 
     """
-    return db.query(modelos.Pizza).filter(modelos.Pizza.is_active == True).all()
+
+    pizzas = db.query(modelos.Pizza).filter(modelos.Pizza.is_active == True).all()
+    return pizzas
+
+def get_pizza(pizza_id: int, db: Session):
+    """
+    Retorna la informacion de la pizza dado un id de pizza
+    """
+    pizza = db.query(modelos.Pizza).filter(modelos.Pizza.id == pizza_id).first()
+    return pizza
+
+
 
 def get_pizza_by_nombre(db: Session, nombre: str):
     return db.query(modelos.Pizza).filter(modelos.Pizza.nombre == nombre).first()
@@ -46,6 +58,9 @@ def create_pizza(db: Session, pizza: schemas.PizzaCreate):
     db.commit()
     db.refresh(db_pizza)
     return db_pizza
+
+
+
 #
 # CRUD para INGREDIENTE
 #

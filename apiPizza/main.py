@@ -54,10 +54,20 @@ def create_pizza(pizza: schemas.PizzaCreate, db: Session = Depends(get_db)):
 
     return crud.create_pizza(db=db, pizza=pizza)
 
-@app.get("/pizzas/", response_model=List[schemas.Pizza])
+@app.get("/pizzas/", response_model=List[schemas.PizzaNoId])
 def read_pizzas(user_type: int, db: Session = Depends(get_db)):
-    pizzas = crud.get_pizzas(db)
+    pizzas = crud.get_pizzas(user_type, db)
+    for pizza in pizzas:
+        pizza.cantidad_ingredientes = pizza.get_cantidad_ingredientes()
     return pizzas
+
+@app.get("/pizzas/{pizza_id}", response_model=schemas.PizzaDetallado)
+def read_pizza_detallado(pizza_id: int, db: Session = Depends(get_db)):
+    db_pizza = crud.get_pizza(pizza_id=pizza_id , db=db )
+    if db_pizza is None: # Si el usuario no se encontro
+        raise HTTPException(status_code=404, detail="Pizza no existe.")
+    
+    return db_pizza
 
 # ENDPOINTS INGREDIENTES
 

@@ -32,11 +32,14 @@ class Pizza(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, index=True)
     precio = Column(Integer, index=True)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=False)
 
     sus_ingredientes = relationship(
         "Ingrediente", secondary=association_table_pizza_ingrediente, back_populates="pizzas_usando"
     )
+
+    def get_cantidad_ingredientes(self):
+        return len(self.sus_ingredientes)
 
 
 class IngreCategory(enum.Enum):
