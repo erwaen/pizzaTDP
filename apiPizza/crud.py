@@ -27,3 +27,35 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
+#
+# CRUD para PIZZA
+#
+def get_pizzas(db: Session):
+    """
+    Default todas las pizzas que estan activas
+    Si el usuario esta logueado y es usuario staff o superuser retorna todas las pizzas 
+    """
+    return db.query(modelos.Pizza).filter(modelos.Pizza.is_active == True).all()
+
+def get_pizza_by_nombre(db: Session, nombre: str):
+    return db.query(modelos.Pizza).filter(modelos.Pizza.nombre == nombre).first()
+
+def create_pizza(db: Session, pizza: schemas.PizzaCreate):
+    db_pizza = modelos.Pizza(**pizza.dict())
+    db.add(db_pizza)
+    db.commit()
+    db.refresh(db_pizza)
+    return db_pizza
+#
+# CRUD para INGREDIENTE
+#
+
+def get_ingrediente_by_nombre(db: Session, nombre: str):
+    return db.query(modelos.Ingrediente).filter(modelos.Ingrediente.nombre == nombre).first()
+
+def create_ingrediente(db: Session, ingrediente: schemas.IngredienteCreate):
+    db_ingrediente = modelos.Ingrediente(**ingrediente.dict())
+    db.add(db_ingrediente)
+    db.commit()
+    db.refresh(db_ingrediente)
+    return db_ingrediente
