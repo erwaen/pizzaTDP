@@ -72,7 +72,7 @@ def login(username:str, password:str, db: Session = Depends(get_db)):
         "refresh_token": create_refresh_token(user.username),
     }
     
-    
+
 @app.get('/me', summary='Obtiene los detalles de un usuario, se usa solo para testeo', response_model=schemas.User)
 async def get_me(user: modelos.Usuario = Depends(get_current_user)):
     return user
@@ -166,6 +166,15 @@ def agregar_ingrediente_pizza(p_id: int, ingr_id , db: Session = Depends(get_db)
     # Si el usuario no es staff o superuser
     if user.is_superuser==False and user.is_staff==False:
         raise HTTPException(status_code=400, detail="No se puede agregar ingrediente a la pizza, Usuario sin permisos")
+        
+    if crud.get_ingrediente(db, ingr_id) is None:
+        raise HTTPException(status_code=400, detail=f"El ingrediente con id {ingr_id} no existe")
+    if crud.get_pizza(p_id, db) is None:
+        raise HTTPException(status_code=400, detail=f"La pizza con id {p_id} no existe")
+
+    if crud.get_pizza_ingrediente_relacion(p_id=p_id, ingr_id=ingr_id, db=db):
+        raise HTTPException(status_code=400, detail="No se hizo nada, Ya existe esta relacion de pizza-ingrediente")
+
     result = crud.agregar_ingrediente_a_la_pizza(p_id, ingr_id, db)
     return result
 
@@ -220,7 +229,7 @@ def modificar_ingrediente(ingrediente_id: int, ingrediente: schemas.IngredienteC
         raise HTTPException(status_code=400, detail="No se puede modificar un ingrediente, Usuario sin permisos")
 
     db_ingrediente = crud.get_ingrediente(db, id=ingrediente_id)
-    if db_ingrediente is None: # Si el usuario no se encontro
+    if db_ingrediente is None: # Si el ingrediente no se encontro
         raise HTTPException(status_code=404, detail="El ingrediente no existe.")
     
     db_ingrediente = crud.modificar_ingrediente(db_ingrediente, nombre=ingrediente.nombre, categoria=ingrediente.categoria, db=db)
@@ -238,6 +247,12 @@ def eliminar_ingrediente( ingrediente_id: int ,db: Session = Depends(get_db), us
     if user.is_superuser==False and user.is_staff==False:
         raise HTTPException(status_code=400, detail="No se puede eliminar un ingrediente, Usuario sin permisos")
 
+    #Verificar si existe el ingrediente
+    db_ingrediente = crud.get_ingrediente(db, id=ingrediente_id)
+    if db_ingrediente is None: # Si el ingrediente no se encontro
+        raise HTTPException(status_code=404, detail="El ingrediente no existe.")
+
+     #verificar que no este asociada a ninguna pizza   
     db_ingrediente_relacion = crud.verificar_si_ingrediente_en_uso(id =  ingrediente_id, db=db)
     if db_ingrediente_relacion:
         raise HTTPException(status_code=400, detail="No se pudo eliminar, hay pizzas asociadas a este ingrediente.")
