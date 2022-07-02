@@ -1,4 +1,6 @@
+from tkinter.messagebox import NO
 from typing import List, Union
+from uuid import UUID
 from .modelos import IngreCategory
 
 from pydantic import BaseModel
@@ -89,5 +91,17 @@ class PizzaIngrediente(BaseModel):
     pizza_id: int
     ingrediente_id: int
 
+    class Config:
+        orm_mode = True
+
+class TokenJWT(BaseModel):
+    access_token: str
+    refresh_token: str
+    class Config:
+        orm_mode = True
+
+class TokenPayload(BaseModel):
+    sub: str 
+    exp: int 
     class Config:
         orm_mode = True

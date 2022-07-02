@@ -1,5 +1,6 @@
 from unittest import result
 from sqlalchemy.orm import Session
+from . import utils
 
 from . import modelos, schemas
 
@@ -20,8 +21,8 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    pass_hashed = user.password + "megustalapizza"
-    db_user = modelos.Usuario(username=user.username, hashed_password=pass_hashed)
+    pass_hashed = utils.get_hashed_password(user.password)
+    db_user = modelos.Usuario(username=user.username, hashed_password=pass_hashed, is_staff=user.is_staff, is_superuser = user.is_superuser)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -31,13 +32,15 @@ def create_user(db: Session, user: schemas.UserCreate):
 #
 # CRUD para PIZZA
 #
-def get_pizzas(user_type, db: Session):
+def get_pizzas( db: Session, list_only_active: bool):
     """
     Default todas las pizzas que estan activas
     Si el usuario esta logueado y es usuario staff o superuser retorna todas las pizzas 
     """
-
-    pizzas = db.query(modelos.Pizza).filter(modelos.Pizza.is_active == True).all()
+    if list_only_active:
+        pizzas = db.query(modelos.Pizza).filter(modelos.Pizza.is_active == True).all()
+    else:
+        pizzas = db.query(modelos.Pizza).all()
     return pizzas
 
 def get_pizza(pizza_id: int, db: Session):

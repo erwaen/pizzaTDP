@@ -3,8 +3,22 @@ from typing import List
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
+from fastapi.security import OAuth2PasswordRequestForm
+
 from . import crud, modelos, schemas
 from .database import SessionLocal, engine
+from .deps import get_current_user
+
+from .utils import (
+    get_hashed_password,
+    create_access_token,
+    create_refresh_token,
+    verify_password
+)
+
+
+
+
 
 modelos.Base.metadata.create_all(bind=engine)
 
@@ -18,16 +32,37 @@ def get_db():
     finally:
         db.close()
 
+@app.post('/signup', summary="Crear nuevo usuario", response_model=schemas.User)
+def create_user(data: schemas.UserCreate, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_username(db, username=data.username)
+    if db_user is not None:
+        raise HTTPException(status_code=400, detail="Ya se creo un user con este username")
+    return crud.create_user(db=db, user=data)
+
+@app.post('/login', summary="Crear access y refresh para el usuario", response_model=schemas.TokenJWT)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = crud.get_user_by_username(db, username=form_data.username)
+    if user is None:
+        raise HTTPException(status_code=400, detail="username o password incorrectos")
+    
+
+    hashed_pass = user.hashed_password
+    if not verify_password(form_data.password, hashed_pass):
+        raise HTTPException(status_code=400, detail="username o password incorrectos")
+    
+    return {
+        "access_token": create_access_token(user.username),
+        "refresh_token": create_refresh_token(user.username),
+    }
+
+@app.get('/me', summary='Obtiene los detalles de un usuario, se usa solo para testeo', response_model=schemas.User)
+async def get_me(user: modelos.Usuario = Depends(get_current_user)):
+    return user
+
 @app.get("/")
 def root():
     return {"message": "Hello World"}
 
-@app.post("/users/", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username=user.username)
-    if db_user: # Si el usuario ya existe
-        raise HTTPException(status_code=400, detail="Ya se creo un user con este username")
-    return crud.create_user(db=db, user=user)
 
 
 @app.get("/users/", response_model=List[schemas.User])
@@ -59,11 +94,14 @@ def create_pizza(pizza: schemas.PizzaCreate, db: Session = Depends(get_db)):
     
 
 @app.get("/pizzas/", response_model=List[schemas.PizzaNoId])
-def read_pizzas(user_type: int, db: Session = Depends(get_db)):
+def read_pizzas(db: Session = Depends(get_db), user: modelos.Usuario = Depends(get_current_user)):
     """
     Listar las pizzas
     """
-    pizzas = crud.get_pizzas(user_type, db)
+    list_only_active = True
+    if user.is_staff or user.is_superuser:
+        list_only_active = False
+    pizzas = crud.get_pizzas( db, list_only_active)
     for pizza in pizzas:
         pizza.cantidad_ingredientes = pizza.get_cantidad_ingredientes()
     return pizzas
