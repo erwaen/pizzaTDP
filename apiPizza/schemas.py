@@ -5,32 +5,44 @@ from pydantic import BaseModel
 
 
 class PizzaBase(BaseModel):
-    id: int
     nombre: str
     precio: int
 
-    class Config:
-        orm_mode = True
+class PizzaCreate(PizzaBase):
+    pass
+
+    
 
 
 class IngredienteBase(BaseModel):
-    id: int
+    
     nombre: str
     categoria: IngreCategory
 
-    class Config:
-        orm_mode = True
     
+    
+class IngredienteCreate(IngredienteBase):
+    pass
 
 # Estas 2 siguientes clases es la estructura que retornameros
 # (recordar que heredan de otras clases).
 # Se aparta de esta manera para EVITAR recursividad al mostrar
 # los ingredientes de una pizza y de nuevo que pizzas usan estos ingredientes.
 class Ingrediente(IngredienteBase):
-    pizzas_que_usa: List[PizzaBase]
+    id: int
+    pizzas_usando: List[PizzaBase]
+
+    class Config:
+        orm_mode = True
 
 class Pizza(PizzaBase):
-    ingredientes: List[IngredienteBase]
+    id: int
+    sus_ingredientes: List[IngredienteBase]
+
+    class Config:
+        orm_mode = True
+
+    
 
 
 
