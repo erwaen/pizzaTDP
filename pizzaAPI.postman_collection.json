@@ -29,7 +29,7 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:8000/logear-jwt?username=staff_user&password=12345678",
+							"raw": "http://127.0.0.1:8000/logear-jwt?username=normal_user&password=12345678",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -44,7 +44,7 @@
 							"query": [
 								{
 									"key": "username",
-									"value": "staff_user"
+									"value": "normal_user"
 								},
 								{
 									"key": "password",
@@ -140,7 +140,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:8000/pizzas/1",
+							"raw": "http://127.0.0.1:8000/pizzas/3",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -151,7 +151,7 @@
 							"port": "8000",
 							"path": [
 								"pizzas",
-								"1"
+								"3"
 							]
 						}
 					},
