@@ -55,6 +55,11 @@ class PizzaDetallado(PizzaBase):
         orm_mode = True
 
     
+class PizzaModificado(PizzaBase):
+    id: int
+    is_active: bool
+    class Config:
+        orm_mode = True
 
 
 

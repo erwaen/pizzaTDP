@@ -86,6 +86,16 @@ def get_pizza_ingrediente_relacion(p_id: int, ingr_id: int, db: Session):
             modelos.AssociationPizzaIngrediente.ingrediente_id == ingr_id
             ).first()
 
+def modificar_pizza(db_pizza, nombre, precio, is_active, db):
+    db_pizza.nombre = nombre
+    db_pizza.precio = precio
+    db_pizza.is_active = is_active
+    db.commit()
+    db.refresh(db_pizza)    
+    return db_pizza
+
+
+
 
 def quitar_ingrediente_a_la_pizza(p_ingre_relacion,  db):
     db.delete(p_ingre_relacion)

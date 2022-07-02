@@ -79,6 +79,19 @@ def read_pizza_detallado(pizza_id: int, db: Session = Depends(get_db)):
     
     return db_pizza
 
+@app.patch("/pizzas/{pizza_id}", response_model = schemas.PizzaModificado)
+def modificar_pizza(pizza_id: int, nombre: str, precio: str, is_active:bool, db: Session = Depends(get_db)):
+    """
+    Modificar valores de la pizza como su nombre, precio ysi es activo o no
+    """
+    db_pizza = crud.get_pizza(pizza_id=pizza_id , db=db )
+    if db_pizza is None: # Si el usuario no se encontro
+        raise HTTPException(status_code=404, detail="Pizza no existe.")
+    db_pizza = crud.modificar_pizza(db_pizza, nombre, precio, is_active, db)
+
+    return db_pizza
+
+
 @app.post("/pizza-ingrediente/")
 def agregar_ingrediente_pizza(p_id: int, ingr_id , db: Session = Depends(get_db)):
     """
@@ -99,6 +112,7 @@ def quitar_ingrediente_pizza(p_id: int, ingr_id: int, db: Session = Depends(get_
         raise HTTPException(status_code=404, detail="Relacion pizza - ingrediente no existe.")
     crud.quitar_ingrediente_a_la_pizza(p_ingre_relacion, db)
     return {"detail": 'Se quito el ingrediente de la pizza correctamente'}
+
 
 
 # ENDPOINTS INGREDIENTES
