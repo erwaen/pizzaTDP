@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from typing import Union, Any
 from jose import jwt
 
+# tiempo de duracion de los tokens
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 6  # 6 horas
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 6 # 6 dias
 ALGORITHM = "HS256"
