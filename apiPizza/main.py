@@ -80,10 +80,13 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 # ENDPOINTS PIZZAS
 @app.post("/pizzas/", response_model=schemas.Pizza)
-def create_pizza(pizza: schemas.PizzaCreate, db: Session = Depends(get_db)):
+def create_pizza(pizza: schemas.PizzaCreate, db: Session = Depends(get_db),  user: modelos.Usuario = Depends(get_current_user)):
     """
-    Crear una pizza
+    Crear una pizza, SOLO STAFF O SUPER USER
     """
+    # Si el usuario no es staff o superuser
+    if user.is_superuser==False and user.is_staff==False:
+        raise HTTPException(status_code=400, detail="No se puede crear la pizza, Usuario sin permisos")
     db_pizza = crud.get_pizza_by_nombre(db, nombre=pizza.nombre)
     if db_pizza: # Si la pizza ya existe
         raise HTTPException(status_code=400, detail="Ya existe la pizza con ese nombre")
@@ -99,6 +102,7 @@ def read_pizzas(db: Session = Depends(get_db), user: modelos.Usuario = Depends(g
     Listar las pizzas
     """
     list_only_active = True
+    # Si el usuario es staff o superuser entonces se cambia el bool para traer tambien las pizzas no activas
     if user.is_staff or user.is_superuser:
         list_only_active = False
     pizzas = crud.get_pizzas( db, list_only_active)
@@ -107,10 +111,11 @@ def read_pizzas(db: Session = Depends(get_db), user: modelos.Usuario = Depends(g
     return pizzas
 
 @app.get("/pizzas/{pizza_id}", response_model=schemas.PizzaDetallado)
-def read_pizza_detallado(pizza_id: int, db: Session = Depends(get_db)):
+def read_pizza_detallado(pizza_id: int, db: Session = Depends(get_db),  user: modelos.Usuario = Depends(get_current_user)):
     """
     Ver en detalle una sola pizza por un id
     """
+    
     db_pizza = crud.get_pizza(pizza_id=pizza_id , db=db )
     if db_pizza is None: # Si el usuario no se encontro
         raise HTTPException(status_code=404, detail="Pizza no existe.")
@@ -118,10 +123,14 @@ def read_pizza_detallado(pizza_id: int, db: Session = Depends(get_db)):
     return db_pizza
 
 @app.patch("/pizzas/{pizza_id}", response_model = schemas.PizzaModificado)
-def modificar_pizza(pizza_id: int, nombre: str, precio: str, is_active:bool, db: Session = Depends(get_db)):
+def modificar_pizza(pizza_id: int, nombre: str, precio: str, is_active:bool, db: Session = Depends(get_db), user: modelos.Usuario = Depends(get_current_user)):
     """
-    Modificar valores de la pizza como su nombre, precio ysi es activo o no
+    Modificar valores de la pizza como su nombre, precio ysi es activo o no,  
+    SOLO STAFF O SUPER USER
     """
+    # Si el usuario no es staff o superuser
+    if user.is_superuser==False and user.is_staff==False:
+        raise HTTPException(status_code=400, detail="No se puede modificar la pizza, Usuario sin permisos")
     db_pizza = crud.get_pizza(pizza_id=pizza_id , db=db )
     if db_pizza is None: # Si el usuario no se encontro
         raise HTTPException(status_code=404, detail="Pizza no existe.")
@@ -131,20 +140,29 @@ def modificar_pizza(pizza_id: int, nombre: str, precio: str, is_active:bool, db:
 
 
 @app.post("/pizza-ingrediente/")
-def agregar_ingrediente_pizza(p_id: int, ingr_id , db: Session = Depends(get_db)):
+def agregar_ingrediente_pizza(p_id: int, ingr_id , db: Session = Depends(get_db), user: modelos.Usuario = Depends(get_current_user)):
     """
-    agrega un ingrediente a tal pizza, ambos dados sus id's
+    agrega un ingrediente a tal pizza, ambos dados sus id's, 
+    DEBE SER NECESARIO  QUE EL USUARIO SEA STAFF O SUPERUSER
     """
-
+    # Si el usuario no es staff o superuser
+    if user.is_superuser==False and user.is_staff==False:
+        raise HTTPException(status_code=400, detail="No se puede agregar ingrediente a la pizza, Usuario sin permisos")
     result = crud.agregar_ingrediente_a_la_pizza(p_id, ingr_id, db)
     return result
 
 @app.delete("/pizza-ingrediente/{p_id}/{ingr_id}")
-def quitar_ingrediente_pizza(p_id: int, ingr_id: int, db: Session = Depends(get_db)):
+def quitar_ingrediente_pizza(p_id: int, ingr_id: int, db: Session = Depends(get_db), user: modelos.Usuario = Depends(get_current_user)):
     """
     Quitar el ingrediente ingr_id a la pizza p_id
+    DEBE SER NECESARIO  QUE EL USUARIO SEA STAFF O SUPERUSER
+
     """
- 
+    
+    # Si el usuario no es staff o superuser
+    if user.is_superuser==False and user.is_staff==False:
+        raise HTTPException(status_code=400, detail="No se puede quitar ingrediente a la pizza, Usuario sin permisos")
+
     p_ingre_relacion = crud.get_pizza_ingrediente_relacion(p_id, ingr_id, db)
     if p_ingre_relacion is None:
         raise HTTPException(status_code=404, detail="Relacion pizza - ingrediente no existe.")
@@ -156,7 +174,15 @@ def quitar_ingrediente_pizza(p_id: int, ingr_id: int, db: Session = Depends(get_
 # ENDPOINTS INGREDIENTES
 
 @app.post("/ingredientes/", response_model=schemas.Ingrediente)
-def create_ingrediente(ingrediente: schemas.IngredienteCreate, db: Session = Depends(get_db)):
+def create_ingrediente(ingrediente: schemas.IngredienteCreate, db: Session = Depends(get_db), user: modelos.Usuario = Depends(get_current_user)):
+    """
+    Ruta para crear un ingrediente
+    Permisos de staff o superusuarios es necesario
+    """
+    # Si el usuario no es staff o superuser
+    if user.is_superuser==False and user.is_staff==False:
+        raise HTTPException(status_code=400, detail="No se  puede crear un ingrediente, Usuario sin permisos")
+
     db_ingrediente = crud.get_ingrediente_by_nombre(db, nombre=ingrediente.nombre)
     if db_ingrediente: # Si el ingrediente ya existe
         raise HTTPException(status_code=400, detail="Ya se creo un ingrediente con este nombre")
@@ -165,10 +191,16 @@ def create_ingrediente(ingrediente: schemas.IngredienteCreate, db: Session = Dep
 
 
 @app.patch("/ingredientes/{ingrediente_id}", response_model = schemas.IngredienteCreate)
-def modificar_ingrediente(ingrediente_id: int, ingrediente: schemas.IngredienteCreate, db: Session = Depends(get_db)):
+def modificar_ingrediente(ingrediente_id: int, ingrediente: schemas.IngredienteCreate, db: Session = Depends(get_db), user: modelos.Usuario = Depends(get_current_user)):
     """
     Modificar valores del ingrediente como su nombre y su categoria
+    Permisos de staff o superusuarios es necesario
+
     """
+    # Si el usuario no es staff o superuser
+    if user.is_superuser==False and user.is_staff==False:
+        raise HTTPException(status_code=400, detail="No se puede modificar un ingrediente, Usuario sin permisos")
+
     db_ingrediente = crud.get_ingrediente(db, id=ingrediente_id)
     if db_ingrediente is None: # Si el usuario no se encontro
         raise HTTPException(status_code=404, detail="El ingrediente no existe.")
@@ -177,10 +209,16 @@ def modificar_ingrediente(ingrediente_id: int, ingrediente: schemas.IngredienteC
     return db_ingrediente
 
 @app.delete("/ingredientes/{ingrediente_id}/")
-def eliminar_ingrediente( ingrediente_id: int ,db: Session = Depends(get_db)):
+def eliminar_ingrediente( ingrediente_id: int ,db: Session = Depends(get_db), user: modelos.Usuario = Depends(get_current_user)):
     """
     Eliminar un ingrediente si es que no esta en uso en ninguna pizza
+    Permisos de staff o superusuarios es necesario
+
     """
+
+     # Si el usuario no es staff o superuser
+    if user.is_superuser==False and user.is_staff==False:
+        raise HTTPException(status_code=400, detail="No se puede eliminar un ingrediente, Usuario sin permisos")
 
     db_ingrediente_relacion = crud.verificar_si_ingrediente_en_uso(id =  ingrediente_id, db=db)
     if db_ingrediente_relacion:
